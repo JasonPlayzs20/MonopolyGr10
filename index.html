@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Connect Four Game</title>
+</head>
+<body>
+<canvas width="600" height="500"></canvas>
+
+<!-- CodeHS JS Graphics Library -->
+<script src="https://cdn.codehs.com/chs-js-lib/0.2.21/dist/chs.iife.js"></script>
+
+<!-- Your Game Code -->
+<script>
+  class Block {
+    constructor(text, subText) {
+
+    }
+  }
+  class Plot extends Block {
+    constructor(color, price, rent, text,subText) {
+      super(text,subText);
+    }
+  }
+  class CardPlot extends Block {
+    constructor(type,text,subText) {
+      super(text,subText);
+    }
+  }
+
+  class Player {
+    constructor(color, wallet, cards) {
+    }
+
+  }
+  class Game {
+
+    constructor() {
+      //0 == nothing
+      //1 == RED
+      //2 = YELLOW
+      //3 =  Green
+      //4 = blue
+      //5 = brown
+      //6 =
+      var mapLayout = [[new Plot(Color.RED, 300, 110, "Prime Server", "$500, Rent: $200"),new Plot(Color.RED, 420, 210, "Amazon Server", "$500, Rent: $210"), new CardPlot("Chance", ""),new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 200, "Google Server", "$300, Rent: $140")]]
+      var map = new Map();
+
+    }
+
+  }
+function start() {
+  setSize(getWidth(), getHeight());
+  var color = new Circle(20);
+  color.setColor(Color.red);
+  color.setPosition(100,100)
+  add(color);
+}
+
+start()
+</script>
+</body>
+</html>

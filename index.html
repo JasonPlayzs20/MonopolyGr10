@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Connect Four Game</title>
+    <title>Connect Four Game</title>
 </head>
 <body>
 <canvas width="600" height="500"></canvas>
@@ -11,143 +11,258 @@
 
 <!-- Your Game Code -->
 <script>
-  class Dice {
+    var loc = [[32, 35], [140, 30], [240, 31], [335, 36], [428, 24], [535, 31], [638, 32], [740, 35], [836, 35], [931, 32], [1029, 38], [1025, 137], [1032, 240], [1026, 342], [1024, 440], [1024, 537], [1034, 632], [1031, 565], [1035, 668], [1035, 774], [1036, 865], [928, 865], [842, 862], [735, 861], [633, 867], [536, 871], [440, 868], [338, 873], [226, 872], [141, 871], [37, 773], [35, 672], [27, 569], [28, 478], [28, 370], [29, 542], [31, 440], [38, 338], [24, 237], [28, 133]];
 
-  }
-  class Block {
-    text;
-    subText;
-    constructor(text, subText) {
-      this.text = text;
-      this.subText = subText;
-    }
-  }
-  class Plot extends Block {
-    color;
-    price;
-    rent;
-    constructor(color, price, rent, text,subText) {
-      super(text,subText);
-      this.color = color;
-      this.price = price;
-      this.rent = rent;
-    }
-  }
-  class CardPlot extends Block {
-    type;
-    constructor(type,text,subText) {
-      super(text,subText);
-      this.type = type;
-    }
+    class Dice {
+        dice1;
+        dice2;
+        dice3;
+        dice4;
+        dice5;
+        dice6;
 
-  }
-
-  class Player {
-    x;
-    y;
-    color;
-    wallet;
-    cards;
-    constructor(color, wallet, cards) {
-    }
-
-  }
-  class Game {
-    mapLayout;
-    constructor() {
-      this.mapLayout = [[new CardPlot("Free Parking", "Free", "Parking"),new Plot(Color.RED, 300, 110, "Prime Server", "$300, Rent: $110"),new Plot(Color.RED, 420, 300, "Amazon Server", "$420, Rent: $300"), new CardPlot("Chance", ""),new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 260, "Google Server", "$300, Rent: $260"), new Plot(Color.BLACK, 180, 60, "Water Server", "$180, Rent: $60"), new Plot(Color.YELLOW, 400, 300, "Alphabet Server", "$400, Rent: $300"), new CardPlot("Go To Jail", "Go To", "Jail")],
-        [new Plot(Color.ORANGE, 250, 130, "iCloud Server", "$250, Rent: $130"), 0,0,0,0,0,0,0,0,0,new Plot(Color.GREEN, 400, 150, "Facebook Server", "$400, Rent: $150")],
-        [new Plot(Color.ORANGE, 200, 80, "Apple Tv Server", "$200, Rent: $80"), 0,0,0,0,0,0,0,0,0,new Plot(Color.GREEN, 500, 300, "Meta Server", "$500, Rent: $300")],
-        [new CardPlot("Community Chest", "Community", "Chest"), 0,0,0,0,0,0,0,0,0,new CardPlot("Community Chest", "Community", "Chest")],
-        [new Plot(Color.ORANGE, 400, 350, "Apple Server", "$400, Rent: $350"), 0,0,0,0,0,0,0,0,0,new Plot(Color.GREEN, 500, 150, "Metaverse Server", "$500, Rent: $150")],
-        [new Plot(Color.BLACK, 100, 70, "Rogers Bandwidth", "$100, Rent: $70"), 0,0,0,0,0,0,0,0,0,new Plot(Color.BLACK, 150, 90, "Freedom Bandwidth", "$150, Rent: $90")],
-        [new Plot(Color.PURPLE, 400, 320, "Dell Server", "$400, Rent: $320"), 0,0,0,0,0,0,0,0,0,new CardPlot("Chance", "Chance", "")],
-        [new Plot(Color.PURPLE, 200, 170, "Alienware Server", "$200, Rent: $170"), 0,0,0,0,0,0,0,0,0,new Plot(Color.BLUE, 750, 550, "Nvidia Server", "$750, Rent: $550")],
-        [new Plot(Color.BLACK, 150, 70, "Fido Server", "$150, Rent: $70"), 0,0,0,0,0,0,0,0,0,new CardPlot("Luxury Tax", "Luxury", "        Tax")],
-        [new Plot(Color.PURPLE, 200, 170, "Dell Laptop Server", "$200, Rent: $170"), 0,0,0,0,0,0,0,0,0,new Plot(Color.BLUE, 800, 570, "AMD Server", "$800, Rent: $570")],
-        [new CardPlot("Jail", "In                 ", "Jail"),new Plot(Color.GRAY, 300, 110, "Windows Server", "$300, Rent: $110"),new Plot(Color.GRAY, 560, 400, "Microsoft Server", "$560, Rent: $400"), new CardPlot("Chance", ""),new Plot(Color.GRAY, 250, 70, "Windows Tablet", "$250, Rent: $70"), new Plot(Color.BLACK, 200, 140, "Starlink Bandwidth", "$200, Rent: $140"), new CardPlot("Tax", "Income Tax", "$200"), new Plot(new Color(88,51,51), 400, 220, "Intel Server", "$400, Rent: $220"), new CardPlot("Community Chest", "Community", "Chest"), new Plot(new Color(88,51,51), 200, 90, "Intel ARM Server", "$200, Rent: $90"), new CardPlot("Pay", "Collect $200", "As you go!")]]
-
-
-    }
-    update() {
-      const boardSize = 11;
-      const cellSize = getWidth() / boardSize;
-
-      for (var i = 0; i < this.mapLayout.length; i++) {
-        for (var j = 0; j < this.mapLayout[i].length; j++) {
-          var square = this.mapLayout[i][j];
-
-          if (square === 0 || square === null) continue;
-
-          var color = new Color(175, 255, 215);
-          if (square instanceof Plot) {
-            color = square.color;
-          }
-
-          var plot;
-          var x, y, width, height;
-
-          const isCorner = (i === 0 || i === boardSize - 1) && (j === 0 || j === boardSize - 1);
-
-          if (isCorner) {
-            width = cellSize;
-            height = cellSize;
-            x = j * cellSize;
-            y = i * cellSize;
-          } else {
-            if (i === 0 || i === boardSize - 1) {
-              width = cellSize;
-              height = cellSize;
-              x = j * cellSize;
-              y = i * cellSize;
-            } else {
-              width = cellSize;
-              height = cellSize;
-              x = j * cellSize;
-              y = i * cellSize;
-            }
-          }
-
-          plot = new Rectangle(width, height);
-          plot.setPosition(x, y);
-          plot.setColor(Color.GRAY);
-          add(plot);
-          var ploting = new Rectangle(width-6, height-6);
-          ploting.setPosition(x+3, y+3);
-          ploting.setColor(new Color(175, 255, 215));
-          add(ploting);
-          var colors = new Rectangle(width/2, height/5);
-          colors.setPosition(x + width/4, y);
-          colors.setColor(color);
-          add(colors);
-
-          if (square.text) {
-            var text = new Text(square.text);
-            text.setPosition(x+(width/2)-(text.getWidth()/4)+14, y + height/2 - 5);
-            text.setColor(Color.BLACK);
-            text.setFont("Arial, 8pt");
-            add(text);
-
-            if (square.subText) {
-              var subText = new Text(square.subText);
-              subText.setPosition(x+(width/2)-(text.getWidth()/4)-17, y + height/2 + 30);
-              subText.setColor(Color.BLACK);
-              subText.setFont("Arial, 7pt");
-              add(subText);
-            }
-          }
+        constructor() {
+            this.dice1 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg");
+            this.dice1.setSize(300, 300);
+            this.dice2 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Dice-2-b.svg/800px-Dice-2-b.svg.png");
+            this.dice2.setSize(300, 300);
+            this.dice3 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Dice-3-b.svg/2048px-Dice-3-b.svg.png");
+            this.dice3.setSize(300, 300);
+            this.dice4 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dice-4-b.svg/600px-Dice-4-b.svg.png");
+            this.dice4.setSize(300, 300);
+            this.dice5 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/0/08/Dice-5-b.svg");
+            this.dice5.setSize(300, 300);
+            this.dice6 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg");
+            this.dice6.setSize(300, 300);
         }
-      }
+
+        getDice(dices, num) {
+            if (num > 5) {
+                num = num % 5;
+            }
+            return dices[num];
+        }
+
+        async roll() {
+            var dices = [this.dice1, this.dice2, this.dice3, this.dice4, this.dice5, this.dice6];
+            var roll = Randomizer.nextInt(0, 6);
+            for (var i = 0; i < 12 + roll; i++) {
+                var globalDice = this.getDice(dices, i)
+                globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);
+                add(globalDice);
+                await new Promise(r => setTimeout(r, 200));
+                remove(globalDice);
+            }
+            var globalDice = this.getDice(dices, i)
+            globalDice.setSize(300, 300);
+            globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);
+            add(globalDice);
+            return roll + 1;
+        }
+
+
     }
 
-  }
-function start() {
-  setSize(1100, 1100);
-  var game = new Game();
-  game.update();
-}
+    class Block {
+        text;
+        subText;
 
-start()
+        constructor(text, subText) {
+            this.text = text;
+            this.subText = subText;
+        }
+    }
+
+    class Plot extends Block {
+        color;
+        price;
+        rent;
+
+        constructor(color, price, rent, text, subText) {
+            super(text, subText);
+            this.color = color;
+            this.price = price;
+            this.rent = rent;
+        }
+    }
+
+    class CardPlot extends Block {
+        type;
+
+        constructor(type, text, subText) {
+            super(text, subText);
+            this.type = type;
+        }
+
+    }
+
+    class Player {
+        x;
+        y;
+        color;
+        wallet;
+        cards;
+
+        constructor(color, wallet, cards) {
+            this.color = color;
+            this.wallet = wallet;
+            this.cards = cards;
+        }
+
+    }
+
+    class Game {
+        mapLayout;
+        dice;
+        players;
+        state;
+
+        constructor() {
+            this.players = [];
+            this.dice = new Dice();
+            this.state = "CHOOSINGPLAYERS";
+            this.mapLayout = [[new CardPlot("Free Parking", "Free", "Parking"), new Plot(Color.RED, 300, 110, "Prime Server", "$300, Rent: $110"), new Plot(Color.RED, 420, 300, "Amazon Server", "$420, Rent: $300"), new CardPlot("Chance", "Chance", ""), new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 260, "Google Server", "$300, Rent: $260"), new Plot(Color.BLACK, 180, 60, "Water Server", "$180, Rent: $60"), new Plot(Color.YELLOW, 400, 300, "Alphabet Server", "$400, Rent: $300"), new CardPlot("Go To Jail", "Go To", "Jail")],
+                [new Plot(Color.ORANGE, 250, 130, "iCloud Server", "$250, Rent: $130"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 400, 150, "Facebook Server", "$400, Rent: $150")],
+                [new Plot(Color.ORANGE, 200, 80, "Apple Tv Server", "$200, Rent: $80"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 300, "Meta Server", "$500, Rent: $300")],
+                [new CardPlot("Community Chest", "Community", "Chest"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Community Chest", "Community", "Chest")],
+                [new Plot(Color.ORANGE, 400, 350, "Apple Server", "$400, Rent: $350"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 150, "Metaverse Server", "$500, Rent: $150")],
+                [new Plot(Color.BLACK, 100, 70, "Rogers Bandwidth", "$100, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLACK, 150, 90, "Freedom Bandwidth", "$150, Rent: $90")],
+                [new Plot(Color.PURPLE, 400, 320, "Dell Server", "$400, Rent: $320"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Chance", "Chance", "")],
+                [new Plot(Color.PURPLE, 200, 170, "Alienware Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 750, 550, "Nvidia Server", "$750, Rent: $550")],
+                [new Plot(Color.BLACK, 150, 70, "Fido Server", "$150, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Luxury Tax", "Luxury", "        Tax")],
+                [new Plot(Color.PURPLE, 200, 170, "Dell Laptop Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 800, 570, "AMD Server", "$800, Rent: $570")],
+                [new CardPlot("Jail", "In                 ", "Jail"), new Plot(Color.GRAY, 300, 110, "Windows Server", "$300, Rent: $110"), new Plot(Color.GRAY, 560, 400, "Microsoft Server", "$560, Rent: $400"), new CardPlot("Chance", "Chance", ""), new Plot(Color.GRAY, 250, 70, "Windows Tablet", "$250, Rent: $70"), new Plot(Color.BLACK, 200, 140, "Starlink Bandwidth", "$200, Rent: $140"), new CardPlot("Tax", "Income Tax", "$200"), new Plot(new Color(88, 51, 51), 400, 220, "Intel Server", "$400, Rent: $220"), new CardPlot("Community Chest", "Community", "Chest"), new Plot(new Color(88, 51, 51), 200, 90, "Intel ARM Server", "$200, Rent: $90"), new CardPlot("Pay", "Collect $200", "As you go!")]]
+
+
+        }
+
+        keyDown(event) {
+            var colors = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN];
+            if (event.key === "1" || event.key === "2" || event.key === "3" || event.key === "4") {
+                for (var i = 0; i < Number(event.key); i++) {
+                    var player = new Player(colors[i], 1000, []);
+                    this.players.push(player);
+                }
+                this.state = "START";
+            }
+        }
+
+        start() {
+
+            var text = new Text("Choose how many players you want to play with. Up to 4");
+            text.setPosition(getWidth() / 2 - text.getWidth() / 2, getHeight() / 2 - text.getHeight() / 2);
+            add(text);
+            if (this.state == "CHOOSINGPLAYERS") {
+                return;
+            }
+            remove(text);
+            this.dice.roll();
+
+        }
+
+
+        update() {
+            const boardSize = 11;
+            const cellSize = getWidth() / boardSize;
+
+            for (var i = 0; i < this.mapLayout.length; i++) {
+                for (var j = 0; j < this.mapLayout[i].length; j++) {
+                    var square = this.mapLayout[i][j];
+
+                    if (square === 0 || square === null) continue;
+
+                    var color = new Color(175, 255, 215);
+                    if (square instanceof Plot) {
+                        color = square.color;
+
+                    }
+
+                    var plot;
+                    var x, y, width, height;
+
+                    const isCorner = (i === 0 || i === boardSize - 1) && (j === 0 || j === boardSize - 1);
+
+                    if (isCorner) {
+                        width = cellSize;
+                        height = cellSize;
+                        x = j * cellSize;
+                        y = i * cellSize;
+                    } else {
+                        if (i === 0 || i === boardSize - 1) {
+                            width = cellSize;
+                            height = cellSize;
+                            x = j * cellSize;
+                            y = i * cellSize;
+                        } else {
+                            width = cellSize;
+                            height = cellSize;
+                            x = j * cellSize;
+                            y = i * cellSize;
+                        }
+                    }
+
+                    plot = new Rectangle(width, height);
+                    plot.setPosition(x, y);
+                    plot.setColor(Color.GRAY);
+                    add(plot);
+                    var ploting = new Rectangle(width - 6, height - 6);
+                    ploting.setPosition(x + 3, y + 3);
+                    ploting.setColor(new Color(175, 255, 215));
+                    add(ploting);
+                    var colors = new Rectangle(width / 2, height / 5);
+                    colors.setPosition(x + width / 4, y);
+                    colors.setColor(color);
+                    add(colors);
+
+                    if (square.text) {
+                        var text = new Text(square.text);
+                        text.setPosition(x + (width / 2) - (text.getWidth() / 4) + 14, y + height / 2 - 5);
+                        text.setColor(Color.BLACK);
+                        text.setFont("Arial, 8pt");
+                        add(text);
+
+                        if (square.subText) {
+                            var subText = new Text(square.subText);
+                            subText.setPosition(x + (width / 2) - (text.getWidth() / 4) - 17, y + height / 2 + 30);
+                            subText.setColor(Color.BLACK);
+                            subText.setFont("Arial, 7pt");
+                            add(subText);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    var game = new Game();
+    function start() {
+        setSize(1100, 1100);
+        game.update();
+        game.start();
+
+        setTimer(gameLoop,10000000);
+        keyDownMethod(game.keyDown);
+        mouseClickMethod(onMouseClick)
+        // var dice = new Dice();
+        // dice.roll();
+    }
+    function gameLoop() {
+        // game.update();
+        // game.start();
+
+    }
+
+    var point = "";
+
+    function onMouseClick(event) {
+        console.log(event.x, event.y);
+        point += "[" + event.x + "," + event.y + "],"
+        console.log(point)
+
+        // println(point)
+    }
+
+    start()
 </script>
 </body>
 </html>

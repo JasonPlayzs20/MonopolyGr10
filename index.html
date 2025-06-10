@@ -20,8 +20,10 @@
         dice4;
         dice5;
         dice6;
+        gameClass;
 
-        constructor() {
+        constructor(gameClass) {
+            this.gameClass = gameClass;
             this.dice1 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg");
             this.dice1.setSize(300, 300);
             this.dice2 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Dice-2-b.svg/800px-Dice-2-b.svg.png");
@@ -42,21 +44,36 @@
             }
             return dices[num];
         }
+        sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
 
-        async roll() {
+        async roll(text) {
+            this.gameClass.state = "WAITROLLING"
             var dices = [this.dice1, this.dice2, this.dice3, this.dice4, this.dice5, this.dice6];
             var roll = Randomizer.nextInt(0, 6);
             for (var i = 0; i < 12 + roll; i++) {
+                console.log("roll")
                 var globalDice = this.getDice(dices, i)
                 globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);
                 add(globalDice);
-                await new Promise(r => setTimeout(r, 200));
+                var title = new Text(text);
+                title.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150)
+                add(title);
+                await new Promise(r => setTimeout(r, 100));
+                remove(title);
                 remove(globalDice);
             }
             var globalDice = this.getDice(dices, i)
             globalDice.setSize(300, 300);
             globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);
             add(globalDice);
+            var title = new Text(text);
+            title.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150)
+            add(title);
+            await new Promise(r => setTimeout(r, 5000));
+            this.gameClass.state = "ROLLING"
+            remove(title);
             return roll + 1;
         }
 
@@ -102,9 +119,13 @@
         color;
         wallet;
         cards;
+        color_text;
+        order;
 
-        constructor(color, wallet, cards) {
+        constructor(color, color_text, wallet, cards, order) {
             this.color = color;
+            this.order = order;
+            this.color_text = color_text;
             this.wallet = wallet;
             this.cards = cards;
         }
@@ -116,10 +137,16 @@
         dice;
         players = [];
         state = "";
+        numofPlayers;
+        player_counter;
+        order;
 
         constructor() {
+            this.order = [];
+            this.numofPlayers = new Text("Choose how many players you want to play with. Up to 4");
             this.players = [];
-            this.dice = new Dice();
+            this.dice = new Dice(this);
+            this.player_counter = 0;
             this.state = "CHOOSINGPLAYERS";
             this.keyDowns = this.keyDowns.bind(this);
             this.mapLayout = [[new CardPlot("Free Parking", "Free", "Parking"), new Plot(Color.RED, 300, 110, "Prime Server", "$300, Rent: $110"), new Plot(Color.RED, 420, 300, "Amazon Server", "$420, Rent: $300"), new CardPlot("Chance", "Chance", ""), new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 260, "Google Server", "$300, Rent: $260"), new Plot(Color.BLACK, 180, 60, "Water Server", "$180, Rent: $60"), new Plot(Color.YELLOW, 400, 300, "Alphabet Server", "$400, Rent: $300"), new CardPlot("Go To Jail", "Go To", "Jail")],
@@ -138,27 +165,37 @@
         }
 
         keyDowns(event) {
+            if (this.state !== "CHOOSINGPLAYERS") return;
+            console.log(event.key + "")
             var colors = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN];
+            var color_text = ["RED", "BLUE", "YELLOW", "GREEN"];
             if (event.key === "1" || event.key === "2" || event.key === "3" || event.key === "4") {
                 for (var i = 0; i < Number(event.key); i++) {
-                    var player = new Player(colors[i], 1000, []);
-                    // this.players = this.players.concat(player);
+                    var player = new Player(colors[i], color_text[i], 1000, []);
+                    this.players = this.players.concat(player);
                 }
                 this.state = "START";
+                console.log(event.key + "")
 
             }
         }
 
         start() {
-            console.log(this.state)
-            var text = new Text("Choose how many players you want to play with. Up to 4");
-            text.setPosition(getWidth() / 2 - text.getWidth() / 2, getHeight() / 2 - text.getHeight() / 2);
-            add(text);
-            if (this.state == "CHOOSINGPLAYERS") {
+            // console.log(this.state)
+            this.numofPlayers.setPosition(getWidth() / 2 - this.numofPlayers.getWidth() / 2, getHeight() / 2 - this.numofPlayers.getHeight() / 2);
+            add(this.numofPlayers);
+            if (this.state === "CHOOSINGPLAYERS") {
                 return;
             }
-            remove(text);
-            this.dice.roll();
+            remove(this.numofPlayers);
+            if (this.state === "START") {
+                this.state = "ROLLING"
+            }
+            if (this.state === "ROLLING") {
+                this.players[this.player_counter].order = this.dice.roll(this.players[this.player_counter].color_text + "'s turn");
+                this.player_counter++;
+
+            }
 
         }
 
@@ -236,22 +273,23 @@
         }
 
     }
- 
+    var game = new Game();
     function start() {
-        var game = new Game();
         setSize(1100, 1100);
-        game.update();
-        game.start();
-
-        setTimer(gameLoop,10000000);
+        // game.update();
+        // game.start();
         keyDownMethod(game.keyDowns);
         mouseClickMethod(onMouseClick)
+        setTimer(gameLoop,1);
+
         // var dice = new Dice();
         // dice.roll();
     }
     function gameLoop() {
-        // game.update();
-        // game.start();
+
+        game.update();
+        game.start();
+
 
     }
 

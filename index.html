@@ -114,13 +114,14 @@
     class Game {
         mapLayout;
         dice;
-        players;
-        state;
+        players = [];
+        state = "";
 
         constructor() {
             this.players = [];
             this.dice = new Dice();
             this.state = "CHOOSINGPLAYERS";
+            this.keyDowns = this.keyDowns.bind(this);
             this.mapLayout = [[new CardPlot("Free Parking", "Free", "Parking"), new Plot(Color.RED, 300, 110, "Prime Server", "$300, Rent: $110"), new Plot(Color.RED, 420, 300, "Amazon Server", "$420, Rent: $300"), new CardPlot("Chance", "Chance", ""), new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 260, "Google Server", "$300, Rent: $260"), new Plot(Color.BLACK, 180, 60, "Water Server", "$180, Rent: $60"), new Plot(Color.YELLOW, 400, 300, "Alphabet Server", "$400, Rent: $300"), new CardPlot("Go To Jail", "Go To", "Jail")],
                 [new Plot(Color.ORANGE, 250, 130, "iCloud Server", "$250, Rent: $130"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 400, 150, "Facebook Server", "$400, Rent: $150")],
                 [new Plot(Color.ORANGE, 200, 80, "Apple Tv Server", "$200, Rent: $80"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 300, "Meta Server", "$500, Rent: $300")],
@@ -136,19 +137,20 @@
 
         }
 
-        keyDown(event) {
+        keyDowns(event) {
             var colors = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN];
             if (event.key === "1" || event.key === "2" || event.key === "3" || event.key === "4") {
                 for (var i = 0; i < Number(event.key); i++) {
                     var player = new Player(colors[i], 1000, []);
-                    this.players.push(player);
+                    // this.players = this.players.concat(player);
                 }
                 this.state = "START";
+
             }
         }
 
         start() {
-
+            console.log(this.state)
             var text = new Text("Choose how many players you want to play with. Up to 4");
             text.setPosition(getWidth() / 2 - text.getWidth() / 2, getHeight() / 2 - text.getHeight() / 2);
             add(text);
@@ -234,14 +236,15 @@
         }
 
     }
-    var game = new Game();
+ 
     function start() {
+        var game = new Game();
         setSize(1100, 1100);
         game.update();
         game.start();
 
         setTimer(gameLoop,10000000);
-        keyDownMethod(game.keyDown);
+        keyDownMethod(game.keyDowns);
         mouseClickMethod(onMouseClick)
         // var dice = new Dice();
         // dice.roll();

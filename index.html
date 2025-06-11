@@ -1,85 +1,281 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--    <title>Connect Four Game</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--<canvas width="600" height="500"></canvas>-->
+
+<!--&lt;!&ndash; CodeHS JS Graphics Library &ndash;&gt;-->
+<!--<script src="https://cdn.codehs.com/chs-js-lib/0.2.21/dist/chs.iife.js"></script>-->
+
+<!--&lt;!&ndash; Your Game Code &ndash;&gt;-->
+<!--<script>-->
+<!--    var loc = [[32, 35], [140, 30], [240, 31], [335, 36], [428, 24], [535, 31], [638, 32], [740, 35], [836, 35], [931, 32], [1029, 38], [1025, 137], [1032, 240], [1026, 342], [1024, 440], [1024, 537], [1034, 632], [1031, 565], [1035, 668], [1035, 774], [1036, 865], [928, 865], [842, 862], [735, 861], [633, 867], [536, 871], [440, 868], [338, 873], [226, 872], [141, 871], [37, 773], [35, 672], [27, 569], [28, 478], [28, 370], [29, 542], [31, 440], [38, 338], [24, 237], [28, 133]];-->
+
+<!--    class Dice {-->
+<!--        dice1;-->
+<!--        dice2;-->
+<!--        dice3;-->
+<!--        dice4;-->
+<!--        dice5;-->
+<!--        dice6;-->
+<!--        gameClass;-->
+
+<!--        constructor(gameClass) {-->
+<!--            this.gameClass = gameClass;-->
+<!--            this.dice1 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg");-->
+<!--            this.dice1.setSize(300, 300);-->
+<!--            this.dice2 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Dice-2-b.svg/800px-Dice-2-b.svg.png");-->
+<!--            this.dice2.setSize(300, 300);-->
+<!--            this.dice3 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Dice-3-b.svg/2048px-Dice-3-b.svg.png");-->
+<!--            this.dice3.setSize(300, 300);-->
+<!--            this.dice4 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dice-4-b.svg/600px-Dice-4-b.svg.png");-->
+<!--            this.dice4.setSize(300, 300);-->
+<!--            this.dice5 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/0/08/Dice-5-b.svg");-->
+<!--            this.dice5.setSize(300, 300);-->
+<!--            this.dice6 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg");-->
+<!--            this.dice6.setSize(300, 300);-->
+<!--        }-->
+
+<!--        getDice(dices, num) {-->
+<!--            if (num > 5) {-->
+<!--                num = num % 5;-->
+<!--            }-->
+<!--            return dices[num];-->
+<!--        }-->
+<!--        sleep(ms) {-->
+<!--            return new Promise(resolve => setTimeout(resolve, ms));-->
+<!--        }-->
+
+<!--        async roll(text) {-->
+<!--            this.gameClass.state = "WAITROLLING"-->
+<!--            var dices = [this.dice1, this.dice2, this.dice3, this.dice4, this.dice5, this.dice6];-->
+<!--            var roll = Randomizer.nextInt(0, 6);-->
+<!--            this.rollOut(roll+1);-->
+<!--            for (var i = 0; i < 0 + roll; i++) {-->
+<!--                // console.log("roll")-->
+<!--                var globalDice = this.getDice(dices, i)-->
+<!--                globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);-->
+<!--                add(globalDice);-->
+<!--                var title = new Text(text);-->
+<!--                title.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150)-->
+<!--                add(title);-->
+<!--                await new Promise(r => setTimeout(r, 100));-->
+<!--                remove(title);-->
+<!--                remove(globalDice);-->
+<!--            }-->
+<!--            var globalDice = this.getDice(dices, i)-->
+<!--            globalDice.setSize(300, 300);-->
+<!--            globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);-->
+<!--            add(globalDice);-->
+<!--            var title = new Text(text);-->
+<!--            title.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150)-->
+<!--            add(title);-->
+<!--            await new Promise(r => setTimeout(r, 5000));-->
+<!--            this.gameClass.state = "ROLLING"-->
+<!--            remove(title);-->
+<!--            remove(globalDice);-->
+
+<!--        }-->
+<!--        rollOut(int) {-->
+<!--            return int;-->
+<!--        }-->
+
+
+<!--    }-->
+
+<!--    class Block {-->
+<!--        text;-->
+<!--        subText;-->
+
+<!--        constructor(text, subText) {-->
+<!--            this.text = text;-->
+<!--            this.subText = subText;-->
+<!--        }-->
+<!--    }-->
+
+<!--    class Plot extends Block {-->
+<!--        color;-->
+<!--        price;-->
+<!--        rent;-->
+
+<!--        constructor(color, price, rent, text, subText) {-->
+<!--            super(text, subText);-->
+<!--            this.color = color;-->
+<!--            this.price = price;-->
+<!--            this.rent = rent;-->
+<!--        }-->
+<!--    }-->
+
+<!--    class CardPlot extends Block {-->
+<!--        type;-->
+
+<!--        constructor(type, text, subText) {-->
+<!--            super(text, subText);-->
+<!--            this.type = type;-->
+<!--        }-->
+
+<!--    }-->
+
+<!--    class Player {-->
+<!--        x;-->
+<!--        y;-->
+<!--        color;-->
+<!--        wallet;-->
+<!--        cards;-->
+<!--        color_text;-->
+<!--        order;-->
+
+<!--        constructor(color, color_text, wallet, cards, order) {-->
+<!--            this.color = color;-->
+<!--            this.order = order;-->
+<!--            this.color_text = color_text;-->
+<!--            this.wallet = wallet;-->
+<!--            this.cards = cards;-->
+<!--        }-->
+
+<!--    }-->
+
+<!--    class Game {-->
+<!--        mapLayout;-->
+<!--        dice;-->
+<!--        players = [];-->
+<!--        state = "";-->
+<!--        numofPlayers;-->
+<!--        player_counter;-->
+<!--        order;-->
+
+<!--        constructor() {-->
+<!--            this.order = [];-->
+<!--            this.numofPlayers = new Text("Choose how many players you want to play with. Up to 4");-->
+<!--            this.players = [];-->
+<!--            this.dice = new Dice(this);-->
+<!--            this.player_counter = 0;-->
+<!--            this.state = "CHOOSINGPLAYERS";-->
+<!--            this.keyDowns = this.keyDowns.bind(this);-->
+<!--            this.mapLayout = [[new CardPlot("Free Parking", "Free", "Parking"), new Plot(Color.RED, 300, 110, "Prime Server", "$300, Rent: $110"), new Plot(Color.RED, 420, 300, "Amazon Server", "$420, Rent: $300"), new CardPlot("Chance", "Chance", ""), new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 260, "Google Server", "$300, Rent: $260"), new Plot(Color.BLACK, 180, 60, "Water Server", "$180, Rent: $60"), new Plot(Color.YELLOW, 400, 300, "Alphabet Server", "$400, Rent: $300"), new CardPlot("Go To Jail", "Go To", "Jail")],-->
+<!--                [new Plot(Color.ORANGE, 250, 130, "iCloud Server", "$250, Rent: $130"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 400, 150, "Facebook Server", "$400, Rent: $150")],-->
+<!--                [new Plot(Color.ORANGE, 200, 80, "Apple Tv Server", "$200, Rent: $80"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 300, "Meta Server", "$500, Rent: $300")],-->
+<!--                [new CardPlot("Community Chest", "Community", "Chest"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Community Chest", "Community", "Chest")],-->
+<!--                [new Plot(Color.ORANGE, 400, 350, "Apple Server", "$400, Rent: $350"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 150, "Metaverse Server", "$500, Rent: $150")],-->
+<!--                [new Plot(Color.BLACK, 100, 70, "Rogers Bandwidth", "$100, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLACK, 150, 90, "Freedom Bandwidth", "$150, Rent: $90")],-->
+<!--                [new Plot(Color.PURPLE, 400, 320, "Dell Server", "$400, Rent: $320"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Chance", "Chance", "")],-->
+<!--                [new Plot(Color.PURPLE, 200, 170, "Alienware Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 750, 550, "Nvidia Server", "$750, Rent: $550")],-->
+<!--                [new Plot(Color.BLACK, 150, 70, "Fido Server", "$150, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Luxury Tax", "Luxury", "        Tax")],-->
+<!--                [new Plot(Color.PURPLE, 200, 170, "Dell Laptop Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 800, 570, "AMD Server", "$800, Rent: $570")],-->
+<!--                [new CardPlot("Jail", "In                 ", "Jail"), new Plot(Color.GRAY, 300, 110, "Windows Server", "$300, Rent: $110"), new Plot(Color.GRAY, 560, 400, "Microsoft Server", "$560, Rent: $400"), new CardPlot("Chance", "Chance", ""), new Plot(Color.GRAY, 250, 70, "Windows Tablet", "$250, Rent: $70"), new Plot(Color.BLACK, 200, 140, "Starlink Bandwidth", "$200, Rent: $140"), new CardPlot("Tax", "Income Tax", "$200"), new Plot(new Color(88, 51, 51), 400, 220, "Intel Server", "$400, Rent: $220"), new CardPlot("Community Chest", "Community", "Chest"), new Plot(new Color(88, 51, 51), 200, 90, "Intel ARM Server", "$200, Rent: $90"), new CardPlot("Pay", "Collect $200", "As you go!")]]-->
+
+
+<!--        }-->
+
+<!--        keyDowns(event) {-->
+<!--            if (this.state !== "CHOOSINGPLAYERS") return;-->
+<!--            console.log(event.key + "")-->
+<!--            var colors = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN];-->
+<!--            var color_text = ["RED", "BLUE", "YELLOW", "GREEN"];-->
+<!--            if (event.key === "1" || event.key === "2" || event.key === "3" || event.key === "4") {-->
+<!--                for (var i = 0; i < Number(event.key); i++) {-->
+<!--                    var player = new Player(colors[i], color_text[i], 1000, []);-->
+<!--                    this.players = this.players.concat(player);-->
+<!--                }-->
+<!--                this.state = "START";-->
+<!--                console.log(event.key + "")-->
+
+<!--            }-->
+<!--        }-->
+
+<!--        start() {-->
+<!--            this.numofPlayers.setPosition(getWidth() / 2 - this.numofPlayers.getWidth() / 2, getHeight() / 2 - this.numofPlayers.getHeight() / 2);-->
+<!--            add(this.numofPlayers);-->
+
+<!--            if (this.state === "CHOOSINGPLAYERS") {-->
+<!--                return;-->
+<!--            }-->
+
+<!--            remove(this.numofPlayers);-->
+
+<!--            if (this.state === "START") {-->
+<!--                this.state = "ROLLING";-->
+<!--                this.player_counter = 0;-->
+<!--                this.order = [];-->
+<!--            }-->
+
+<!--            if (this.state === "ROLLING") {-->
+<!--                if (this.player_counter < this.players.length) {-->
+<!--                    let rollValue = this.dice.roll(this.players[this.player_counter].color_text + "'s turn");-->
+<!--                    console.log(rollValue)-->
+<!--                    this.order.push({ playerIndex: this.player_counter, roll: rollValue });-->
+<!--                    this.player_counter++;-->
+<!--                }-->
+
+<!--                if (this.player_counter >= this.players.length) {-->
+<!--                    this.order.sort((a, b) => b.roll - a.roll);-->
+
+<!--                    for (let i = 0; i < this.order.length; i++) {-->
+<!--                        this.players[this.order[i].playerIndex].order = i + 1;-->
+<!--                    }-->
+
+<!--                    this.state = "PLAY"; // next game state-->
+<!--                    console.log("Playing order:", this.players.map(p => ({ name: p.color_text, order: p.order })));-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+
+
+<!--        update() {-->
+<!--            -->
+<!--        }-->
+
+<!--    }-->
+<!--    var game = new Game();-->
+<!--    function start() {-->
+<!--        setSize(1100, 1100);-->
+<!--        // game.update();-->
+<!--        // game.start();-->
+<!--        keyDownMethod(game.keyDowns);-->
+<!--        mouseClickMethod(onMouseClick)-->
+<!--        setTimer(gameLoop,1);-->
+
+<!--        // var dice = new Dice();-->
+<!--        // dice.roll();-->
+<!--    }-->
+<!--    function gameLoop() {-->
+
+<!--        game.update();-->
+<!--        game.start();-->
+
+
+<!--    }-->
+
+<!--    var point = "";-->
+
+<!--    function onMouseClick(event) {-->
+<!--        console.log(event.x, event.y);-->
+<!--        point += "[" + event.x + "," + event.y + "],"-->
+<!--        console.log(point)-->
+
+<!--        // println(point)-->
+<!--    }-->
+
+<!--    start()-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Connect Four Game</title>
+    <title>Connect Four Game with Dice Roll</title>
 </head>
 <body>
-<canvas width="600" height="500"></canvas>
+<canvas width="1100" height="1100"></canvas>
 
 <!-- CodeHS JS Graphics Library -->
 <script src="https://cdn.codehs.com/chs-js-lib/0.2.21/dist/chs.iife.js"></script>
 
-<!-- Your Game Code -->
 <script>
-    var loc = [[32, 35], [140, 30], [240, 31], [335, 36], [428, 24], [535, 31], [638, 32], [740, 35], [836, 35], [931, 32], [1029, 38], [1025, 137], [1032, 240], [1026, 342], [1024, 440], [1024, 537], [1034, 632], [1031, 565], [1035, 668], [1035, 774], [1036, 865], [928, 865], [842, 862], [735, 861], [633, 867], [536, 871], [440, 868], [338, 873], [226, 872], [141, 871], [37, 773], [35, 672], [27, 569], [28, 478], [28, 370], [29, 542], [31, 440], [38, 338], [24, 237], [28, 133]];
-
-    class Dice {
-        dice1;
-        dice2;
-        dice3;
-        dice4;
-        dice5;
-        dice6;
-        gameClass;
-
-        constructor(gameClass) {
-            this.gameClass = gameClass;
-            this.dice1 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg");
-            this.dice1.setSize(300, 300);
-            this.dice2 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Dice-2-b.svg/800px-Dice-2-b.svg.png");
-            this.dice2.setSize(300, 300);
-            this.dice3 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Dice-3-b.svg/2048px-Dice-3-b.svg.png");
-            this.dice3.setSize(300, 300);
-            this.dice4 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dice-4-b.svg/600px-Dice-4-b.svg.png");
-            this.dice4.setSize(300, 300);
-            this.dice5 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/0/08/Dice-5-b.svg");
-            this.dice5.setSize(300, 300);
-            this.dice6 = new WebImage("https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg");
-            this.dice6.setSize(300, 300);
-        }
-
-        getDice(dices, num) {
-            if (num > 5) {
-                num = num % 5;
-            }
-            return dices[num];
-        }
-        sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        async roll(text) {
-            this.gameClass.state = "WAITROLLING"
-            var dices = [this.dice1, this.dice2, this.dice3, this.dice4, this.dice5, this.dice6];
-            var roll = Randomizer.nextInt(0, 6);
-            for (var i = 0; i < 12 + roll; i++) {
-                console.log("roll")
-                var globalDice = this.getDice(dices, i)
-                globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);
-                add(globalDice);
-                var title = new Text(text);
-                title.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150)
-                add(title);
-                await new Promise(r => setTimeout(r, 100));
-                remove(title);
-                remove(globalDice);
-            }
-            var globalDice = this.getDice(dices, i)
-            globalDice.setSize(300, 300);
-            globalDice.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150);
-            add(globalDice);
-            var title = new Text(text);
-            title.setPosition(getWidth() / 2 - 150, getHeight() / 2 - 150)
-            add(title);
-            await new Promise(r => setTimeout(r, 5000));
-            this.gameClass.state = "ROLLING"
-            remove(title);
-            return roll + 1;
-        }
-
-
-    }
-
     class Block {
         text;
         subText;
@@ -113,34 +309,72 @@
 
     }
 
-    class Player {
-        x;
-        y;
-        color;
-        wallet;
-        cards;
-        color_text;
-        order;
-
-        constructor(color, color_text, wallet, cards, order) {
-            this.color = color;
-            this.order = order;
-            this.color_text = color_text;
-            this.wallet = wallet;
-            this.cards = cards;
+    class Dice {
+        constructor(gameClass) {
+            this.gameClass = gameClass;
+            this.dices = [
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Dice-2-b.svg/800px-Dice-2-b.svg.png"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Dice-3-b.svg/2048px-Dice-3-b.svg.png"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dice-4-b.svg/600px-Dice-4-b.svg.png"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/0/08/Dice-5-b.svg"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg"),
+            ];
+            this.dices.forEach(dice => dice.setSize(300, 300));
         }
 
+        async roll(text) {
+            this.gameClass.state = "WAITROLLING";
+            let centerX = getWidth() / 2 - 150;
+            let centerY = getHeight() / 2 - 150;
+
+            // Rolling animation - show random dice faces quickly 10 times
+            for (let i = 0; i < 10; i++) {
+                let randIndex = Randomizer.nextInt(0, 5);
+                let diceImage = this.dices[randIndex];
+                diceImage.setPosition(centerX, centerY);
+                add(diceImage);
+                let title = new Text(text);
+                title.setFont("Arial-Bold, 20pt");
+                title.setPosition(centerX, centerY - 40);
+                add(title);
+
+                await new Promise(r => setTimeout(r, 100));
+
+                remove(diceImage);
+                remove(title);
+            }
+
+            // Final roll
+            let rollResult = Randomizer.nextInt(1, 6);
+            let finalDice = this.dices[rollResult - 1];
+            finalDice.setPosition(centerX, centerY);
+            add(finalDice);
+            let finalTitle = new Text(text);
+            finalTitle.setFont("Arial-Bold, 20pt");
+            finalTitle.setPosition(centerX, centerY - 40);
+            add(finalTitle);
+
+            await new Promise(r => setTimeout(r, 1500));
+
+            remove(finalDice);
+            remove(finalTitle);
+
+            this.gameClass.state = "ROLLING";
+            return rollResult;
+        }
+    }
+
+    class Player {
+        constructor(color, color_text, wallet = 1000) {
+            this.color = color;
+            this.color_text = color_text;
+            this.wallet = wallet;
+            this.order = 0;
+        }
     }
 
     class Game {
-        mapLayout;
-        dice;
-        players = [];
-        state = "";
-        numofPlayers;
-        player_counter;
-        order;
-
         constructor() {
             this.order = [];
             this.numofPlayers = new Text("Choose how many players you want to play with. Up to 4");
@@ -162,43 +396,90 @@
                 [new CardPlot("Jail", "In                 ", "Jail"), new Plot(Color.GRAY, 300, 110, "Windows Server", "$300, Rent: $110"), new Plot(Color.GRAY, 560, 400, "Microsoft Server", "$560, Rent: $400"), new CardPlot("Chance", "Chance", ""), new Plot(Color.GRAY, 250, 70, "Windows Tablet", "$250, Rent: $70"), new Plot(Color.BLACK, 200, 140, "Starlink Bandwidth", "$200, Rent: $140"), new CardPlot("Tax", "Income Tax", "$200"), new Plot(new Color(88, 51, 51), 400, 220, "Intel Server", "$400, Rent: $220"), new CardPlot("Community Chest", "Community", "Chest"), new Plot(new Color(88, 51, 51), 200, 90, "Intel ARM Server", "$200, Rent: $90"), new CardPlot("Pay", "Collect $200", "As you go!")]]
 
 
+            this.keyDowns = this.keyDowns.bind(this);
         }
 
         keyDowns(event) {
             if (this.state !== "CHOOSINGPLAYERS") return;
-            console.log(event.key + "")
-            var colors = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN];
-            var color_text = ["RED", "BLUE", "YELLOW", "GREEN"];
-            if (event.key === "1" || event.key === "2" || event.key === "3" || event.key === "4") {
-                for (var i = 0; i < Number(event.key); i++) {
-                    var player = new Player(colors[i], color_text[i], 1000, []);
-                    this.players = this.players.concat(player);
+
+            if (["1", "2", "3", "4"].includes(event.key)) {
+                const colors = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN];
+                const color_texts = ["RED", "BLUE", "YELLOW", "GREEN"];
+
+                this.players = [];
+                for (let i = 0; i < Number(event.key); i++) {
+                    this.players.push(new Player(colors[i], color_texts[i]));
                 }
+
                 this.state = "START";
-                console.log(event.key + "")
-
+                console.log(`Players chosen: ${this.players.length}`);
             }
         }
 
-        start() {
-            // console.log(this.state)
-            this.numofPlayers.setPosition(getWidth() / 2 - this.numofPlayers.getWidth() / 2, getHeight() / 2 - this.numofPlayers.getHeight() / 2);
-            add(this.numofPlayers);
+        async start() {
             if (this.state === "CHOOSINGPLAYERS") {
+                // Display message to choose players
+                if (!this.chooseText) {
+                    this.chooseText = new Text("Press 1-4 to select number of players");
+                    // this.chooseText.setFont("Arial-Bold, 48pt");
+                    this.chooseText.setPosition(getWidth() / 2 - this.chooseText.getWidth() / 2, getHeight() / 2);
+                    add(this.chooseText);
+                }
                 return;
+            } else if (this.chooseText) {
+                remove(this.chooseText);
+                this.chooseText = null;
             }
-            remove(this.numofPlayers);
+
             if (this.state === "START") {
-                this.state = "ROLLING"
+                this.state = "ROLLING";
+                this.player_counter = 0;
+                this.order = [];
+                console.log("Starting dice roll to determine play order...");
             }
+
             if (this.state === "ROLLING") {
-                this.players[this.player_counter].order = this.dice.roll(this.players[this.player_counter].color_text + "'s turn");
-                this.player_counter++;
+                while (this.player_counter < this.players.length) {
+                    const player = this.players[this.player_counter];
+                    const rollValue = await this.dice.roll(`${player.color_text}'s turn`);
+                    console.log(`${player.color_text} rolled: ${rollValue}`);
+                    this.order.push({playerIndex: this.player_counter, roll: rollValue});
+                    this.player_counter++;
+                }
 
+                // Sort by roll descending
+                this.order.sort((a, b) => b.roll - a.roll);
+
+                // Assign order to players
+                for (let i = 0; i < this.order.length; i++) {
+                    this.players[this.order[i].playerIndex].order = i + 1;
+                }
+
+                console.log("Play order determined:");
+                this.players.forEach(p => {
+                    console.log(`${p.color_text}: order ${p.order}`);
+                });
+
+                this.state = "PLAY";
             }
 
-        }
+            if (this.state === "PLAY") {
+                // Game main play logic here
+                if (!this.orderText) {
+                    this.orderText = new Text("Player order:");
+                    this.orderText.setFont("Arial-Bold, 24pt");
+                    this.orderText.setPosition(20, 20);
+                    add(this.orderText);
 
+                    for (let i = 0; i < this.players.length; i++) {
+                        let t = new Text(`${this.players[i].order}. ${this.players[i].color_text}`);
+                        t.setFont("Arial, 18pt");
+                        t.setPosition(20, 60 + i * 30);
+                        add(t);
+                    }
+                }
+            }
+        }
 
         update() {
             const boardSize = 11;
@@ -271,39 +552,29 @@
                 }
             }
         }
-
     }
-    var game = new Game();
+
+    const game = new Game();
+
+    let rollingInProgress = false;
+
+    async function gameLoop() {
+        game.update();
+
+        if (!rollingInProgress) {
+            rollingInProgress = true;
+            await game.start();
+            rollingInProgress = false;
+        }
+    }
+
     function start() {
         setSize(1100, 1100);
-        // game.update();
-        // game.start();
         keyDownMethod(game.keyDowns);
-        mouseClickMethod(onMouseClick)
-        setTimer(gameLoop,1);
-
-        // var dice = new Dice();
-        // dice.roll();
-    }
-    function gameLoop() {
-
-        game.update();
-        game.start();
-
-
+        setTimer(gameLoop, 10);
     }
 
-    var point = "";
-
-    function onMouseClick(event) {
-        console.log(event.x, event.y);
-        point += "[" + event.x + "," + event.y + "],"
-        console.log(point)
-
-        // println(point)
-    }
-
-    start()
+    start();
 </script>
 </body>
 </html>

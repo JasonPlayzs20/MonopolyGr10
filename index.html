@@ -12,10 +12,13 @@
 <script>
     var loc = [[32, 35], [140, 30], [240, 31], [335, 36], [428, 24], [535, 31], [638, 32], [740, 35], [836, 35], [931, 32], [1029, 38], [1025, 137], [1032, 240], [1026, 342], [1024, 440], [1024, 537], [1034, 632], [1031, 565], [1035, 668], [1035, 774], [1036, 865], [928, 865], [842, 862], [735, 861], [633, 867], [536, 871], [440, 868], [338, 873], [226, 872], [141, 871], [37, 773], [35, 672], [27, 569], [28, 478], [28, 370], [29, 542], [31, 440], [38, 338], [24, 237], [28, 133]];
 
-    class Block {
-        text;
-        subText;
+    var game;
 
+    function wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    class Block {
         constructor(text, subText) {
             this.text = text;
             this.subText = subText;
@@ -23,453 +26,401 @@
     }
 
     class Plot extends Block {
-        color;
-        price;
-        rent;
-        owner = null;
-
         constructor(color, price, rent, text, subText) {
             super(text, subText);
             this.color = color;
             this.price = price;
             this.rent = rent;
+            this.owner = null;
         }
+
         isOwned() {
             return !!this.owner;
         }
+
         buy(player) {
-            if (this.isOwned() || player.wallet < this.price) return false;
-            player.wallet -= this.price;
+            if (this.isOwned() || player.cash < this.price) return false;
+            player.cash -= this.price;
             this.owner = player;
-            player.properties.push(this);
             return true;
         }
+
         payRent(player) {
             if (!this.isOwned() || this.owner === player) return false;
-            player.wallet -= this.rent;
-            this.owner.wallet += this.rent;
+            player.cash -= this.rent;
+            this.owner.cash += this.rent;
             return true;
         }
     }
 
     class CardPlot extends Block {
-        type;
-
         constructor(type, text, subText) {
             super(text, subText);
             this.type = type;
         }
-
     }
 
     class Dice {
-        constructor(gameClass) {
-            this.gameClass = gameClass;
-            this.dices = [
+        constructor() {
+            this.faces = [
                 new WebImage("https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-1-b.svg"),
-                new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Dice-2-b.svg/800px-Dice-2-b.svg.png"),
-                new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Dice-3-b.svg/2048px-Dice-3-b.svg.png"),
-                new WebImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dice-4-b.svg/600px-Dice-4-b.svg.png"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/5/5f/Dice-2-b.svg"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/b/b1/Dice-3-b.svg"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/f/fd/Dice-4-b.svg"),
                 new WebImage("https://upload.wikimedia.org/wikipedia/commons/0/08/Dice-5-b.svg"),
-                new WebImage("https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg"),
+                new WebImage("https://upload.wikimedia.org/wikipedia/commons/2/26/Dice-6-b.svg")
             ];
-            this.dices.forEach(dice => dice.setSize(300, 300));
+            this.faces.forEach(face => face.setSize(120, 120));
         }
 
-        async roll(text) {
-            this.gameClass.state = "WAITROLLING";
-            let centerX = getWidth() / 2 - 150;
-            let centerY = getHeight() / 2 - 150;
+        async roll(playerName) {
+            const cx = getWidth() / 2 - 60;
+            const cy = getHeight() / 2 - 60;
 
-            // Rolling animation - show random dice faces quickly 10 times
-            for (let i = 0; i < 10; i++) {
-                let randIndex = Randomizer.nextInt(0, 5);
-                let diceImage = this.dices[randIndex];
-                diceImage.setPosition(centerX, centerY);
-                add(diceImage);
-                let title = new Text(text);
-                // title.setFont("Arial-Bold, 20pt");
-                title.setPosition(centerX, centerY - 40);
-                add(title);
-
-                await new Promise(r => setTimeout(r, 100));
-
-                remove(diceImage);
-                remove(title);
+            for (let i = 0; i < 8; i++) {
+                const randomFace = this.faces[Randomizer.nextInt(0, 5)];
+                randomFace.setPosition(cx, cy);
+                add(randomFace);
+                await wait(80);
+                remove(randomFace);
             }
 
-            // Final roll
-            let rollResult = Randomizer.nextInt(1, 6);
-            let finalDice = this.dices[rollResult - 1];
-            finalDice.setPosition(centerX, centerY);
-            add(finalDice);
-            let finalTitle = new Text(text);
-            // finalTitle.setFont("Arial-Bold, 20pt");
-            finalTitle.setPosition(centerX, centerY - 40);
-            add(finalTitle);
+            const result = Randomizer.nextInt(1, 6);
+            const finalFace = this.faces[result - 1];
+            finalFace.setPosition(cx, cy);
+            add(finalFace);
 
-            await new Promise(r => setTimeout(r, 1500));
+            const txt = new Text(`${playerName} rolled ${result}`);
+            txt.setPosition(cx - 20, cy - 30);
+            add(txt);
 
-            remove(finalDice);
-            remove(finalTitle);
-            if (text === "") {
-                this.gameClass.state = "PLAY";
-                return rollResult;
-            }
-            this.gameClass.state = "ROLLING";
-            return rollResult;
+            await wait(1000);
+            remove(finalFace);
+            remove(txt);
+
+            return result;
         }
     }
 
     class Player {
-        x;
-        y;
-        index;
-
-        constructor(color, color_text, wallet = 1500) {
+        constructor(color, name, gameRef) {
             this.color = color;
-            this.color_text = color_text;
-            this.wallet = wallet;
+            this.name = name;
+            this.cash = 1500;
+            this.position = 0;
             this.x = 0;
             this.y = 0;
-            this.index = 0;
-            this.order = 0;
-            this.properties = [];
-        }
+            this.game = gameRef;
+            this.canMove = false;
+            this.stepsToMove = 0;
+            this.originalPosition = 0;
 
-        getShape() {
-            console.log("getShape");
-            var circle = new Circle(10);
-            circle.setColor(this.color);
-            circle.setPosition(this.x + loc[this.index][0], this.y + loc[this.index][1]);
-            // circle.setPosition(35,36);
-            return circle;
-        }
+        this.token = new Circle(12);
+        this.token.setColor(color);
+        add(this.token);
 
-        renderWallet(x = 15, y = 15) {
-            if (!this.walletTxt) {
-                this.walletTxt = new Text("");
-                this.walletTxt.setFont("12pt Arial");
-                this.walletTxt.setColor(this.color_text);
-                add(this.walletTxt);
-            }
-            this.walletTxt.setPosition(x, y);
-            this.walletTxt.setText(`P${this.order + 1}: $${this.wallet}`);
-        }
+        this.label = new Text("");
+        this.label.setFont("12pt Arial");
+        this.label.setColor(color);
+        add(this.label);
+
+        this.updateDisplay();
     }
 
-
-    class Game {
-        constructor() {
-            this.turn = 0;
-            this.order = [];
-            this.numofPlayers = new Text("Choose how many players you want to play with. Up to 4");
-            this.players = [];
-            this.dice = new Dice(this);
-            this.player_counter = 0;
-            this.state = "CHOOSINGPLAYERS";
-            this.keyDowns = this.keyDowns.bind(this);
-            this.mapLayout = [[new CardPlot("Free Parking", "Free", "Parking"), new Plot(Color.RED, 300, 110, "Prime Server", "$300, Rent: $110"), new Plot(Color.RED, 420, 300, "Amazon Server", "$420, Rent: $300"), new CardPlot("Chance", "Chance", ""), new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 260, "Google Server", "$300, Rent: $260"), new Plot(Color.BLACK, 180, 60, "Water Server", "$180, Rent: $60"), new Plot(Color.YELLOW, 400, 300, "Alphabet Server", "$400, Rent: $300"), new CardPlot("Go To Jail", "Go To", "Jail")],
-                [new Plot(Color.ORANGE, 250, 130, "iCloud Server", "$250, Rent: $130"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 400, 150, "Facebook Server", "$400, Rent: $150")],
-                [new Plot(Color.ORANGE, 200, 80, "Apple Tv Server", "$200, Rent: $80"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 300, "Meta Server", "$500, Rent: $300")],
-                [new CardPlot("Community Chest", "Community", "Chest"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Community Chest", "Community", "Chest")],
-                [new Plot(Color.ORANGE, 400, 350, "Apple Server", "$400, Rent: $350"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 150, "Metaverse Server", "$500, Rent: $150")],
-                [new Plot(Color.BLACK, 100, 70, "Rogers Bandwidth", "$100, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLACK, 150, 90, "Freedom Bandwidth", "$150, Rent: $90")],
-                [new Plot(Color.PURPLE, 400, 320, "Dell Server", "$400, Rent: $320"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Chance", "Chance", "")],
-                [new Plot(Color.PURPLE, 200, 170, "Alienware Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 750, 550, "Nvidia Server", "$750, Rent: $550")],
-                [new Plot(Color.BLACK, 150, 70, "Fido Server", "$150, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Luxury Tax", "Luxury", "        Tax")],
-                [new Plot(Color.PURPLE, 200, 170, "Dell Laptop Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 800, 570, "AMD Server", "$800, Rent: $570")],
-                [new CardPlot("Jail", "In                 ", "Jail"), new Plot(Color.GRAY, 300, 110, "Windows Server", "$300, Rent: $110"), new Plot(Color.GRAY, 560, 400, "Microsoft Server", "$560, Rent: $400"), new CardPlot("Chance", "Chance", ""), new Plot(Color.GRAY, 250, 70, "Windows Tablet", "$250, Rent: $70"), new Plot(Color.BLACK, 200, 140, "Starlink Bandwidth", "$200, Rent: $140"), new CardPlot("Tax", "Income Tax", "$200"), new Plot(new Color(88, 51, 51), 400, 220, "Intel Server", "$400, Rent: $220"), new CardPlot("Community Chest", "Community", "Chest"), new Plot(new Color(88, 51, 51), 200, 90, "Intel ARM Server", "$200, Rent: $90"), new CardPlot("Pay", "Collect $200", "As you go!")]]
-
-
-            this.keyDowns = this.keyDowns.bind(this);
-            this.bindKeys();
-        }
-
-        bindKeys() {
-            window.addEventListener("keydown", async e => {
-                if (e.code === "Space" && this.state === "PLAY") {
-                    await this.playTurn();
-                }
-            });
-        }
-
-        async playTurn() {
-            const player = this.players[this.turn];
-            const steps  = await this.dice.roll(`Player ${player.order + 1} Roll`);
-            await this.movePlayer(player, steps);
-            this.turn = (this.turn + 1) % this.players.length;
-        }
-
-        async movePlayer(player, steps) {
-            for (let i = 0; i < steps; i++) {
-                player.index = (player.index + 1) % loc.length;
-                this.redrawPlayers();
-                await new Promise(r => setTimeout(r, 180));
-            }
-            this.resolveLanding(player);
-        }
-
-        resolveLanding(player) {
-            const plot = this.getPlotAt(player.index);
-            if (plot instanceof Plot) {
-                if (!plot.isOwned()) {
-                    if (confirm(`${plot.text}\nPrice $${plot.price}\nBuy?`)) {
-                        plot.buy(player);
-                    }
-                } else {
-                    plot.payRent(player);
-                    alert(`Paid $${plot.rent} rent to Player ${plot.owner.order + 1}`);
-                }
-            }
-            // update HUD
-            this.players.forEach((p, i) => p.renderWallet(15, 15 + i * 18));
-        }
-
-        getPlotAt(i) {
-            if (!this.linearBoard) {
-                this.linearBoard = this.mapLayout.flat().filter(Boolean);
-            }
-            return this.linearBoard[i];
-        }
-
-        redrawPlayers() {
-            if (!this.pegs) {
-                this.pegs = this.players.map(p => {
-                    const shape = p.getShape();
-                    add(shape);
-                    return shape;
-                });
-            }
-            this.players.forEach((p, idx) => {
-                this.pegs[idx].setPosition(p.x + loc[p.index][0],
-                    p.y + loc[p.index][1]);
-            });
-        }
-
-        keyDowns(event) {
-            if (this.state !== "CHOOSINGPLAYERS") return;
-
-            if (["1", "2", "3", "4"].includes(event.key)) {
-                const colors = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN];
-                const color_texts = ["RED", "BLUE", "YELLOW", "GREEN"];
-
-                this.players = [];
-                for (let i = 0; i < Number(event.key); i++) {
-                    this.players.push(new Player(colors[i], color_texts[i]));
-                }
-
-                this.state = "START";
-                console.log(`Players chosen: ${this.players.length}`);
-            }
-        }
-
-        async start() {
-            console.log(this.state)
-            if (this.state === "CHOOSINGPLAYERS") {
-                // Display message to choose players
-                if (!this.chooseText) {
-                    this.chooseText = new Text("Press 1-4 to select number of players");
-                    // this.chooseText.setFont("Arial-Bold, 48pt");
-                    this.chooseText.setPosition(getWidth() / 2 - this.chooseText.getWidth() / 2, getHeight() / 2);
-                    add(this.chooseText);
-                }
-                return;
-            } else if (this.chooseText) {
-                remove(this.chooseText);
-                this.chooseText = null;
-            }
-
-            if (this.state === "START") {
-                this.state = "ROLLING";
-                this.player_counter = 0;
-                this.order = [];
-                console.log("Starting dice roll to determine play order...");
-            }
-
-            if (this.state === "ROLLING") {
-                while (this.player_counter < this.players.length) {
-                    const player = this.players[this.player_counter];
-                    const rollValue = await this.dice.roll(`${player.color_text}'s turn`);
-                    console.log(`${player.color_text} rolled: ${rollValue}`);
-                    // this.order[rollValue - 1] = {playerIndex: this.player_counter, roll: rollValue};
-                    this.order.push({playerIndex: this.player_counter, roll: rollValue});
-                    this.player_counter++;
-                }
-                this.order.sort((a, b) => b.roll - a.roll);
-
-                this.players = this.order.map((entry, index) => {
-                    const player = this.players[entry.playerIndex];
-                    player.order = index + 1;
-                    return player;
-                });
-
-                console.log("Play order determined:");
-                this.players.forEach(p => {
-                    console.log(`${p.color_text}: order ${p.order}`);
-                });
-
-                this.state = "PLAY";
-            }
-
-            if (this.state === "PLAY") {
-                if (this.turn > this.players.length-1) {
-                    this.turn = 0;
-                }
-                console.log(this.turn)
-                var result = this.dice.roll("")
-                var player = this.players[this.turn];
-                console.log(player)
-                if (player.index + result > 39) {
-                    result = 39 - player.index;
-                    player.index = 0;
-                }
-                player.index += result;
-                this.turn++;
-            }
-        }
-
-        update() {
-            const boardSize = 11;
-            const cellSize = getWidth() / boardSize;
-
-            for (var i = 0; i < this.mapLayout.length; i++) {
-                for (var j = 0; j < this.mapLayout[i].length; j++) {
-                    var square = this.mapLayout[i][j];
-
-                    if (square === 0 || square === null) continue;
-
-                    var color = new Color(175, 255, 215);
-                    if (square instanceof Plot) {
-                        color = square.color;
-
-                    }
-
-                    var plot;
-                    var x, y, width, height;
-
-                    const isCorner = (i === 0 || i === boardSize - 1) && (j === 0 || j === boardSize - 1);
-
-                    if (isCorner) {
-                        width = cellSize;
-                        height = cellSize;
-                        x = j * cellSize;
-                        y = i * cellSize;
-                    } else {
-                        if (i === 0 || i === boardSize - 1) {
-                            width = cellSize;
-                            height = cellSize;
-                            x = j * cellSize;
-                            y = i * cellSize;
-                        } else {
-                            width = cellSize;
-                            height = cellSize;
-                            x = j * cellSize;
-                            y = i * cellSize;
-                        }
-                    }
-
-                    plot = new Rectangle(width, height);
-                    plot.setPosition(x, y);
-                    plot.setColor(Color.GRAY);
-                    add(plot);
-                    var ploting = new Rectangle(width - 6, height - 6);
-                    ploting.setPosition(x + 3, y + 3);
-                    ploting.setColor(new Color(175, 255, 215));
-                    add(ploting);
-                    var colors = new Rectangle(width / 2, height / 5);
-                    colors.setPosition(x + width / 4, y);
-                    colors.setColor(color);
-                    add(colors);
-
-                    if (square.text) {
-                        var text = new Text(square.text);
-                        text.setPosition(x + (width / 2) - (text.getWidth() / 4) + 14, y + height / 2 - 5);
-                        text.setColor(Color.BLACK);
-                        text.setFont("Arial, 8pt");
-                        add(text);
-
-                        if (square.subText) {
-                            var subText = new Text(square.subText);
-                            subText.setPosition(x + (width / 2) - (text.getWidth() / 4) - 17, y + height / 2 + 30);
-                            subText.setColor(Color.BLACK);
-                            subText.setFont("Arial, 7pt");
-                            add(subText);
-                        }
-                    }
-                }
-            }
-        }
-
-        setPlayers() {
-            for (var i = 0; i < this.players.length; i++) {
-                if (i === 0) {
-                    // this.players[i].x = 10;
-                } else if (i === 1) {
-                    this.players[i].x = 40;
-                } else if (i === 2) {
-                    this.players[i].x = 0;
-                    this.players[i].y = 40;
-                } else if (i === 3) {
-                    this.players[i].x = 40;
-                    this.players[i].y = 40;
-                }
-                this.players[i].index = 0;
-                add(this.players[i].getShape());
-            }
-        }
+    enableMovement(steps) {
+        this.canMove = true;
+        this.stepsToMove = steps;
+        this.originalPosition = this.position;
     }
 
-    // const game = new Game();
-    //
-    // let rollingInProgress = false;
-    //
-    // async function gameLoop() {
-    //     game.update();
-    //
-    //     if (!rollingInProgress) {
-    //         rollingInProgress = true;
-    //         await game.start();
-    //         rollingInProgress = false;
-    //         // stopTimer(gameLoop);
-    //     }
-    //     if (game.state === "PLAY") {
-    //         game.setPlayers();
-    //         stopTimer(gameLoop);
-    //         setTimer(playerLoop, 10)
-    //     }
-    //
-    // }
-    //
-    // function start() {
-    //     setSize(1100, 1100);
-    //     keyDownMethod(game.keyDowns);
-    //     setTimer(gameLoop, 10);
-    //
-    //     if (game.state === "PLAY") {
-    //         console.log("Game already started");
-    //         game.setPlayers();
-    //
-    //     }
-    // }
-    //
-    // async function playerLoop() {
-    //     console.log("Player loop");
-    //     await game.start();
-    // }
-    function start() {
-        const game = new Game();
-        game.update();
-        game.players = [
-            new Player(Color.RED,  Color.WHITE),
-            new Player(Color.BLUE, Color.WHITE)
+    snapToNearestPosition(mouseX, mouseY) {
+        let nearestIndex = this.originalPosition;
+        let nearestDistance = Infinity;
+
+        for (let i = 1; i <= this.stepsToMove; i++) {
+            const targetIndex = (this.originalPosition + i) % loc.length;
+            const [x, y] = loc[targetIndex];
+            const distance = Math.sqrt((mouseX - (x + this.x)) ** 2 + (mouseY - (y + this.y)) ** 2);
+            
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestIndex = targetIndex;
+            }
+        }
+
+        this.position = nearestIndex;
+        this.updateDisplay();
+        this.canMove = false;
+        this.stepsToMove = 0;
+
+        setTimeout(() => {
+            this.game.resolveLanding(this);
+            this.game.nextTurn();
+        }, 300);
+    }
+
+    updateDisplay() {
+        const [x, y] = loc[this.position];
+        this.token.setPosition(x + this.x, y + this.y);
+        this.label.setText(`${this.name}: $${this.cash}`);
+    }
+}
+
+class Game {
+    constructor() {
+        this.players = [];
+        this.turn = 0;
+        this.dice = new Dice();
+        this.gameState = "WAITING_FOR_DICE";
+        this.draggedToken = null;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.colors = [
+            {color: Color.RED, name: "Red"},
+            {color: Color.BLUE, name: "Blue"},
+            {color: Color.GREEN, name: "Green"},
+            {color: Color.ORANGE, name: "Orange"}
         ];
-        game.players.forEach((p, i) => { p.order = i; });
-        game.state = "PLAY";
-        game.redrawPlayers();
-        game.players.forEach(p => p.renderWallet());
+
+        this.instructionText = new Text("");
+        this.instructionText.setFont("16pt Arial");
+        this.instructionText.setColor(Color.BLACK);
+        this.instructionText.setPosition(20, getHeight() - 40);
+        add(this.instructionText);
+
+        this.mapLayout = [
+            [new CardPlot("Free Parking", "Free", "Parking"), new Plot(Color.RED, 300, 110, "Prime Server", "$300, Rent: $110"), new Plot(Color.RED, 420, 300, "Amazon Server", "$420, Rent: $300"), new CardPlot("Chance", "Chance", ""), new Plot(Color.RED, 550, 240, "Amazon Shopping", "$550, Rent: $240"), new Plot(Color.BLACK, 200, 120, "Bell Bandwidth", "$200, Rent: $120"), new Plot(Color.YELLOW, 260, 140, "Chrome Server", "$260, Rent: 140"), new Plot(Color.YELLOW, 300, 260, "Google Server", "$300, Rent: $260"), new Plot(Color.BLACK, 180, 60, "Water Server", "$180, Rent: $60"), new Plot(Color.YELLOW, 400, 300, "Alphabet Server", "$400, Rent: $300"), new CardPlot("Go To Jail", "Go To", "Jail")],
+            [new Plot(Color.ORANGE, 250, 130, "iCloud Server", "$250, Rent: $130"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 400, 150, "Facebook Server", "$400, Rent: $150")],
+            [new Plot(Color.ORANGE, 200, 80, "Apple Tv Server", "$200, Rent: $80"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 300, "Meta Server", "$500, Rent: $300")],
+            [new CardPlot("Community Chest", "Community", "Chest"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Community Chest", "Community", "Chest")],
+            [new Plot(Color.ORANGE, 400, 350, "Apple Server", "$400, Rent: $350"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.GREEN, 500, 150, "Metaverse Server", "$500, Rent: $150")],
+            [new Plot(Color.BLACK, 100, 70, "Rogers Bandwidth", "$100, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLACK, 150, 90, "Freedom Bandwidth", "$150, Rent: $90")],
+            [new Plot(Color.PURPLE, 400, 320, "Dell Server", "$400, Rent: $320"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Chance", "Chance", "")],
+            [new Plot(Color.PURPLE, 200, 170, "Alienware Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 750, 550, "Nvidia Server", "$750, Rent: $550")],
+            [new Plot(Color.BLACK, 150, 70, "Fido Server", "$150, Rent: $70"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new CardPlot("Luxury Tax", "Luxury", "Tax")],
+            [new Plot(Color.PURPLE, 200, 170, "Dell Laptop Server", "$200, Rent: $170"), 0, 0, 0, 0, 0, 0, 0, 0, 0, new Plot(Color.BLUE, 800, 570, "AMD Server", "$800, Rent: $570")],
+            [new CardPlot("Jail", "In Jail", "Jail"), new Plot(Color.GRAY, 300, 110, "Windows Server", "$300, Rent: $110"), new Plot(Color.GRAY, 560, 400, "Microsoft Server", "$560, Rent: $400"), new CardPlot("Chance", "Chance", ""), new Plot(Color.GRAY, 250, 70, "Windows Tablet", "$250, Rent: $70"), new Plot(Color.BLACK, 200, 140, "Starlink Bandwidth", "$200, Rent: $140"), new CardPlot("Tax", "Income Tax", "$200"), new Plot(new Color(88, 51, 51), 400, 220, "Intel Server", "$400, Rent: $220"), new CardPlot("Community Chest", "Community", "Chest"), new Plot(new Color(88, 51, 51), 200, 90, "Intel ARM Server", "$200, Rent: $90"), new CardPlot("Pay", "Collect $200", "As you go!")]
+        ];
+
+        this.linearBoard = null;
     }
-    start();
+
+    onMouseDown(e) {
+        if (this.gameState !== "WAITING_FOR_MOVE") return;
+
+        const element = getElementAt(e.getX(), e.getY());
+        if (element == null) return;
+
+        const currentPlayer = this.getCurrentPlayer();
+        if (element === currentPlayer.token && currentPlayer.canMove) {
+            this.draggedToken = currentPlayer;
+            this.dragStartX = e.getX() - element.getX();
+            this.dragStartY = e.getY() - element.getY();
+        }
+    }
+
+    onMouseDrag(e) {
+        if (this.draggedToken) {
+            this.draggedToken.token.setPosition(
+                e.getX() - this.dragStartX,
+                e.getY() - this.dragStartY
+            );
+        }
+    }
+
+    onMouseUp(e) {
+        if (this.draggedToken) {
+            this.draggedToken.snapToNearestPosition(e.getX(), e.getY());
+            this.draggedToken = null;
+        }
+    }
+
+    async rollDiceForCurrentPlayer() {
+        if (this.gameState !== "WAITING_FOR_DICE") return;
+
+        const currentPlayer = this.getCurrentPlayer();
+        this.gameState = "ROLLING";
+        this.updateInstructions("Rolling dice...");
+
+        const steps = await this.dice.roll(currentPlayer.name);
+        currentPlayer.enableMovement(steps);
+        
+        this.gameState = "WAITING_FOR_MOVE";
+        this.updateInstructions(`${currentPlayer.name}: Drag your token to move ${steps} spaces`);
+    }
+
+    getCurrentPlayer() {
+        return this.players[this.turn];
+    }
+
+    nextTurn() {
+        this.turn = (this.turn + 1) % this.players.length;
+        this.gameState = "WAITING_FOR_DICE";
+        this.updateInstructions(`${this.getCurrentPlayer().name}'s turn - Press SPACEBAR to roll dice`);
+        this.updateLabels();
+    }
+
+    updateInstructions(text) {
+        this.instructionText.setText(text);
+    }
+
+    drawBoard() {
+        const boardSize = 11;
+        const cellSize = getWidth() / boardSize;
+
+        for (let i = 0; i < this.mapLayout.length; i++) {
+            for (let j = 0; j < this.mapLayout[i].length; j++) {
+                const square = this.mapLayout[i][j];
+                if (!square) continue;
+
+                const x = j * cellSize;
+                const y = i * cellSize;
+
+                const border = new Rectangle(cellSize, cellSize);
+                border.setPosition(x, y);
+                border.setColor(Color.GRAY);
+                add(border);
+
+                const inner = new Rectangle(cellSize - 6, cellSize - 6);
+                inner.setPosition(x + 3, y + 3);
+                inner.setColor(new Color(175, 255, 215));
+                add(inner);
+
+                if (square instanceof Plot) {
+                    const colorStrip = new Rectangle(cellSize / 2, cellSize / 5);
+                    colorStrip.setPosition(x + cellSize / 4, y);
+                    colorStrip.setColor(square.color);
+                    add(colorStrip);
+                }
+
+                if (square.text) {
+                    const text = new Text(square.text);
+                    text.setFont("8pt Arial");
+                    text.setColor(Color.BLACK);
+                    text.setPosition(x + cellSize / 2 - text.getWidth() / 2, y + cellSize / 2 - 5);
+                    add(text);
+
+                    if (square.subText) {
+                        const subText = new Text(square.subText);
+                        subText.setFont("7pt Arial");
+                        subText.setColor(Color.BLACK);
+                        subText.setPosition(x + cellSize / 2 - subText.getWidth() / 2, y + cellSize / 2 + 10);
+                        add(subText);
+                    }
+                }
+            }
+        }
+    }
+
+    getPlotAt(position) {
+        if (!this.linearBoard) {
+            this.linearBoard = this.mapLayout.flat().filter(Boolean);
+        }
+        return this.linearBoard[position];
+    }
+
+    async startGame() {
+        this.drawBoard();
+
+        const numPlayers = readInt("How many players? (2-4): ");
+
+        if (numPlayers < 2 || numPlayers > 4) {
+            println("Invalid number of players. Using 2 players.");
+            this.createPlayers(2);
+        } else {
+            this.createPlayers(numPlayers);
+        }
+
+        this.setupPlayerPositions();
+        this.updateInstructions(`${this.getCurrentPlayer().name}'s turn - Press SPACEBAR to roll dice`);
+    }
+
+    createPlayers(num) {
+        for (let i = 0; i < num; i++) {
+            const config = this.colors[i];
+            const player = new Player(config.color, config.name, this);
+            this.players.push(player);
+        }
+    }
+
+    setupPlayerPositions() {
+        this.players.forEach((player, i) => {
+            if (i === 1) player.x = 20;
+            if (i === 2) player.y = 20;
+            if (i === 3) {
+                player.x = 20;
+                player.y = 20;
+            }
+            player.updateDisplay();
+        });
+        this.updateLabels();
+    }
+
+    updateLabels() {
+        this.players.forEach((player, i) => {
+            player.label.setPosition(15, 20 + i * 20);
+        });
+    }
+
+    resolveLanding(player) {
+        const plot = this.getPlotAt(player.position);
+        if (plot instanceof Plot) {
+            if (!plot.isOwned()) {
+                const buyChoice = readLine(`${plot.text}\nPrice: $${plot.price}\nBuy? (y/n): `);
+                if (buyChoice.toLowerCase() === 'y') {
+                    if (plot.buy(player)) {
+                        println(`${player.name} bought ${plot.text}!`);
+                    } else {
+                        println("Not enough money!");
+                    }
+                }
+            } else if (plot.owner !== player) {
+                plot.payRent(player);
+                println(`${player.name} paid $${plot.rent} rent to ${plot.owner.name}`);
+            }
+        }
+        this.updateLabels();
+    }
+}
+
+function keyDown(e) {
+    if (e.keyCode == Keyboard.SPACE && game.gameState === "WAITING_FOR_DICE") {
+        game.rollDiceForCurrentPlayer();
+    }
+    if (e.keyCode == Keyboard.letter('R')) {
+        println("Game restarted!");
+    }
+}
+
+function keyUp(e) {
+}
+
+function onMouseDown(e) {
+    game.onMouseDown(e);
+}
+
+function onMouseDrag(e) {
+    game.onMouseDrag(e);
+}
+
+function onMouseUp(e) {
+    game.onMouseUp(e);
+}
+
+function start() {
+    setSize(1100, 1100);
+    
+    keyDownMethod(keyDown);
+    keyUpMethod(keyUp);
+    mouseDownMethod(onMouseDown);
+    mouseDragMethod(onMouseDrag);
+    mouseUpMethod(onMouseUp);
+    
+    game = new Game();
+    game.startGame();
+}
+
+start();
 </script>
 </body>
 </html>

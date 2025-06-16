@@ -26,12 +26,29 @@
         color;
         price;
         rent;
+        owner = null;
 
         constructor(color, price, rent, text, subText) {
             super(text, subText);
             this.color = color;
             this.price = price;
             this.rent = rent;
+        }
+        isOwned() {
+            return !!this.owner;
+        }
+        buy(player) {
+            if (this.isOwned() || player.wallet < this.price) return false;
+            player.wallet -= this.price;
+            this.owner = player;
+            player.properties.push(this);
+            return true;
+        }
+        payRent(player) {
+            if (!this.isOwned() || this.owner === player) return false;
+            player.wallet -= this.rent;
+            this.owner.wallet += this.rent;
+            return true;
         }
     }
 
@@ -95,7 +112,10 @@
 
             remove(finalDice);
             remove(finalTitle);
-
+            if (text === "") {
+                this.gameClass.state = "PLAY";
+                return rollResult;
+            }
             this.gameClass.state = "ROLLING";
             return rollResult;
         }
@@ -106,7 +126,7 @@
         y;
         index;
 
-        constructor(color, color_text, wallet = 1000) {
+        constructor(color, color_text, wallet = 1500) {
             this.color = color;
             this.color_text = color_text;
             this.wallet = wallet;
@@ -114,6 +134,7 @@
             this.y = 0;
             this.index = 0;
             this.order = 0;
+            this.properties = [];
         }
 
         getShape() {
@@ -124,11 +145,23 @@
             // circle.setPosition(35,36);
             return circle;
         }
+
+        renderWallet(x = 15, y = 15) {
+            if (!this.walletTxt) {
+                this.walletTxt = new Text("");
+                this.walletTxt.setFont("12pt Arial");
+                this.walletTxt.setColor(this.color_text);
+                add(this.walletTxt);
+            }
+            this.walletTxt.setPosition(x, y);
+            this.walletTxt.setText(`P${this.order + 1}: $${this.wallet}`);
+        }
     }
 
 
     class Game {
         constructor() {
+            this.turn = 0;
             this.order = [];
             this.numofPlayers = new Text("Choose how many players you want to play with. Up to 4");
             this.players = [];
@@ -150,6 +183,68 @@
 
 
             this.keyDowns = this.keyDowns.bind(this);
+            this.bindKeys();
+        }
+
+        bindKeys() {
+            window.addEventListener("keydown", async e => {
+                if (e.code === "Space" && this.state === "PLAY") {
+                    await this.playTurn();
+                }
+            });
+        }
+
+        async playTurn() {
+            const player = this.players[this.turn];
+            const steps  = await this.dice.roll(`Player ${player.order + 1} Roll`);
+            await this.movePlayer(player, steps);
+            this.turn = (this.turn + 1) % this.players.length;
+        }
+
+        async movePlayer(player, steps) {
+            for (let i = 0; i < steps; i++) {
+                player.index = (player.index + 1) % loc.length;
+                this.redrawPlayers();
+                await new Promise(r => setTimeout(r, 180));
+            }
+            this.resolveLanding(player);
+        }
+
+        resolveLanding(player) {
+            const plot = this.getPlotAt(player.index);
+            if (plot instanceof Plot) {
+                if (!plot.isOwned()) {
+                    if (confirm(`${plot.text}\nPrice $${plot.price}\nBuy?`)) {
+                        plot.buy(player);
+                    }
+                } else {
+                    plot.payRent(player);
+                    alert(`Paid $${plot.rent} rent to Player ${plot.owner.order + 1}`);
+                }
+            }
+            // update HUD
+            this.players.forEach((p, i) => p.renderWallet(15, 15 + i * 18));
+        }
+
+        getPlotAt(i) {
+            if (!this.linearBoard) {
+                this.linearBoard = this.mapLayout.flat().filter(Boolean);
+            }
+            return this.linearBoard[i];
+        }
+
+        redrawPlayers() {
+            if (!this.pegs) {
+                this.pegs = this.players.map(p => {
+                    const shape = p.getShape();
+                    add(shape);
+                    return shape;
+                });
+            }
+            this.players.forEach((p, idx) => {
+                this.pegs[idx].setPosition(p.x + loc[p.index][0],
+                    p.y + loc[p.index][1]);
+            });
         }
 
         keyDowns(event) {
@@ -170,6 +265,7 @@
         }
 
         async start() {
+            console.log(this.state)
             if (this.state === "CHOOSINGPLAYERS") {
                 // Display message to choose players
                 if (!this.chooseText) {
@@ -200,10 +296,8 @@
                     this.order.push({playerIndex: this.player_counter, roll: rollValue});
                     this.player_counter++;
                 }
-// Sort by roll descending
                 this.order.sort((a, b) => b.roll - a.roll);
 
-// Rebuild this.players based on sorted order
                 this.players = this.order.map((entry, index) => {
                     const player = this.players[entry.playerIndex];
                     player.order = index + 1;
@@ -219,20 +313,19 @@
             }
 
             if (this.state === "PLAY") {
-                // Game main play logic here
-                // if (!this.orderText) {
-                //     this.orderText = new Text("Player order:");
-                //     this.orderText.setFont("Arial-Bold, 24pt");
-                //     this.orderText.setPosition(20, 20);
-                //     add(this.orderText);
-                //
-                //     for (let i = 0; i < this.players.length; i++) {
-                //         let t = new Text(`${this.players[i].order}. ${this.players[i].color_text}`);
-                //         t.setFont("Arial, 18pt");
-                //         t.setPosition(20, 60 + i * 30);
-                //         add(t);
-                //     }
-                // }
+                if (this.turn > this.players.length-1) {
+                    this.turn = 0;
+                }
+                console.log(this.turn)
+                var result = this.dice.roll("")
+                var player = this.players[this.turn];
+                console.log(player)
+                if (player.index + result > 39) {
+                    result = 39 - player.index;
+                    player.index = 0;
+                }
+                player.index += result;
+                this.turn++;
             }
         }
 
@@ -327,41 +420,55 @@
         }
     }
 
-    const game = new Game();
-
-    let rollingInProgress = false;
-
-    async function gameLoop() {
-        game.update();
-
-        if (!rollingInProgress) {
-            rollingInProgress = true;
-            await game.start();
-            rollingInProgress = false;
-            // stopTimer(gameLoop);
-        }
-        if (game.state === "PLAY") {
-            game.setPlayers();
-            stopTimer(gameLoop);
-        }
-
-    }
-
+    // const game = new Game();
+    //
+    // let rollingInProgress = false;
+    //
+    // async function gameLoop() {
+    //     game.update();
+    //
+    //     if (!rollingInProgress) {
+    //         rollingInProgress = true;
+    //         await game.start();
+    //         rollingInProgress = false;
+    //         // stopTimer(gameLoop);
+    //     }
+    //     if (game.state === "PLAY") {
+    //         game.setPlayers();
+    //         stopTimer(gameLoop);
+    //         setTimer(playerLoop, 10)
+    //     }
+    //
+    // }
+    //
+    // function start() {
+    //     setSize(1100, 1100);
+    //     keyDownMethod(game.keyDowns);
+    //     setTimer(gameLoop, 10);
+    //
+    //     if (game.state === "PLAY") {
+    //         console.log("Game already started");
+    //         game.setPlayers();
+    //
+    //     }
+    // }
+    //
+    // async function playerLoop() {
+    //     console.log("Player loop");
+    //     await game.start();
+    // }
     function start() {
-        setSize(1100, 1100);
-        keyDownMethod(game.keyDowns);
-        setTimer(gameLoop, 10);
-        if (game.state === "PLAY") {
-            console.log("Game already started");
-            game.setPlayers();
-            setTimer(playerLoop, 10)
-        }
+        const game = new Game();
+        game.update();
+        game.players = [
+            new Player(Color.RED,  Color.WHITE),
+            new Player(Color.BLUE, Color.WHITE)
+        ];
+        game.players.forEach((p, i) => { p.order = i; });
+        game.state = "PLAY";
+        game.redrawPlayers();
+        game.players.forEach(p => p.renderWallet());
     }
-
-    async function playerLoop() {
-
-    }
-
     start();
 </script>
 </body>
